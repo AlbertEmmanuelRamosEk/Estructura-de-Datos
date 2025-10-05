@@ -1,0 +1,7 @@
+¿Con cuántos elementos quedó la pila?
+La pila quedo con dos elementos nada más, la pila V y R.
+
+¿Hubo algún caso de error (desbordamiento o subdesbordamiento)?
+Si, ocurrio un caso de subdesbordamiento (underflow) en el intento de eliminar
+la pila 5 (pila U), para este punto la pila ya estaba vacía.
+
