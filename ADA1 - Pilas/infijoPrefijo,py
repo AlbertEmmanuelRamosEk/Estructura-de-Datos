@@ -1,0 +1,137 @@
+# convertidor.py - convertir infijo -> posfijo / prefijo (simple y claro)
+class Pila:
+    def __init__(self):
+        self.items = []
+    def apilar(self, x): self.items.append(x)
+    def desapilar(self):
+        if not self.items: raise IndexError("Pila vacía")
+        return self.items.pop()
+    def cima(self): return self.items[-1] if self.items else None
+    def esta_vacia(self): return len(self.items) == 0
+
+# precedencia y asociatividad
+def precedencia(op):
+    if op in ('+', '-'): return 1
+    if op in ('*', '/'): return 2
+    if op == '^': return 3
+    return 0
+
+def es_operador(t): return t in ('+', '-', '*', '/', '^')
+
+# tokenizador sencillo: acepta expresiones con o sin espacios, y números con signo simple
+def tokenize(expr: str):
+    expr = expr.replace(' ', '')
+    tokens = []
+    i = 0
+    n = len(expr)
+    while i < n:
+        c = expr[i]
+        if c in '()+-*/^':
+            # tratar '-' como parte de número si es un signo (inicio o después de '(' u operador)
+            if c == '-':
+                if i == 0 or expr[i-1] in '([+-*/^':
+                    # leer número con signo
+                    j = i+1
+                    num = '-'
+                    dot = False
+                    while j < n and (expr[j].isdigit() or (expr[j]=='.' and not dot)):
+                        if expr[j] == '.': dot = True
+                        num += expr[j]; j += 1
+                    # si solo hay '-' sin dígitos, considerarlo operador normal
+                    if num == '-':
+                        tokens.append('-'); i += 1
+                    else:
+                        tokens.append(num); i = j
+                    continue
+                else:
+                    tokens.append('-'); i += 1; continue
+            else:
+                tokens.append(c); i += 1; continue
+        elif c.isdigit() or c == '.':
+            j = i
+            num = ''
+            dot = False
+            while j < n and (expr[j].isdigit() or (expr[j]=='.' and not dot)):
+                if expr[j] == '.': dot = True
+                num += expr[j]; j += 1
+            tokens.append(num); i = j
+        else:
+            raise ValueError(f"Carácter inválido: {c}")
+    return tokens
+
+# shunting-yard: infix -> postfix
+def infix_to_postfix(tokens):
+    out = []
+    ops = Pila()
+    for t in tokens:
+        if t.replace('.','',1).lstrip('-').isdigit():  # número (incluye negativos y decimales)
+            out.append(t)
+        elif t == '(':
+            ops.apilar(t)
+        elif t == ')':
+            while not ops.esta_vacia() and ops.cima() != '(':
+                out.append(ops.desapilar())
+            if ops.esta_vacia():
+                raise ValueError("Paréntesis desbalanceados")
+            ops.desapilar()  # quitar '('
+        elif es_operador(t):
+            while (not ops.esta_vacia() and ops.cima() != '(' and
+                   ((precedencia(t) <= precedencia(ops.cima()) and t != '^') or
+                    (t == '^' and precedencia(t) < precedencia(ops.cima())))):
+                out.append(ops.desapilar())
+            ops.apilar(t)
+        else:
+            raise ValueError(f"Token desconocido: {t}")
+    while not ops.esta_vacia():
+        top = ops.desapilar()
+        if top in ('(',')'): raise ValueError("Paréntesis desbalanceados")
+        out.append(top)
+    return out
+
+# infix -> prefix (método: invertir, swap parentesis, aplicar shunting-yard, invertir resultado)
+def infix_to_prefix(tokens):
+    # invertir tokens y cambiar '(' <-> ')'
+    rev = []
+    for t in reversed(tokens):
+        if t == '(':
+            rev.append(')')
+        elif t == ')':
+            rev.append('(')
+        else:
+            rev.append(t)
+    # ahora convertir rev (que actúa como infija) a postfix
+    post = infix_to_postfix(rev)
+    # invertir postfix para obtener prefix
+    prefix = list(reversed(post))
+    return prefix
+
+# función principal de conversión
+def convertir_infijo(expr: str, destino: str):
+    tokens = tokenize(expr)
+    destino = destino.lower()
+    if destino in ('postfix','posfijo','posfix','postfija'):
+        post = infix_to_postfix(tokens)
+        return ' '.join(post)
+    elif destino in ('prefix','prefijo'):
+        pref = infix_to_prefix(tokens)
+        return ' '.join(pref)
+    else:
+        raise ValueError("Destino inválido: 'postfix' o 'prefix'")
+
+# --- interfaz simple por consola ---
+if __name__ == "__main__":
+    print("Convertidor infijo -> postfix / prefix")
+    expr = input("Escribe la expresión infija (ej: 3+4*2/(1-5)^2^3):\n> ")
+    print("Elige destino: 1) postfix  2) prefix")
+    opt = input("> ").strip()
+    destino = 'postfix' if opt == '1' else 'prefix' if opt == '2' else opt
+    try:
+        resultado = convertir_infijo(expr, destino)
+        print(f"\nExpresión infija: {expr}")
+        print(f"Convertido a {destino}:")
+        print(resultado)
+    except Exception as e:
+        print("Error:", e)
+
+        
+
