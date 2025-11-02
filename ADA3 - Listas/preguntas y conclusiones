@@ -1,1 +1,22 @@
+¿Qué sucedio con las listas?
+Las listas se inicializaron correctamente y estan listas para usarse.
+Al momento de ejecutar el programa, la función menu() es llamada. dentro
+de menu(), se crea la instancia principal: lista = ListaPostres().
+El método init de ListaPostres se ejecuta y simplemente establece self.cabeza = None.
+pero ¿que significa todo eso?
+la lista de postres se creó y esta vacía (su cabeza apunta a None).
+las listas internas de ingredientes aun no existen, pero se crearán y gestionarán
+dinamicamente cada vez que se agregue un nuevo postre (como una lista enlazada interna
+dentro de cada nodo postre).
 
+¿Mando algún mensaje de error?
+al momento de ejecutar e interactuar con el programa no, no se generó ningun
+mensaje de error. Ya que el código está estructurado para que las posibles
+"fallas" sean gestionadas por la propia lógica de la clase ListaPostres.
+En lugar de generar un error de Python (exception), el código muestra mensajes 
+informativos mediante la consola.
+
+Conclusiones
+La ejecucuón inicial del código fue exitosa. Esta tarea es un ejemplo de una 
+estructura de datos del tipo de listas enlazadas. funciona correctamente y 
+el programa interactua con el usuario mediante el menu.
